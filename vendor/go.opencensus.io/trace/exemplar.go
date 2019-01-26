@@ -12,21 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build go1.11
-
 package trace
 
 import (
 	"context"
-	t "runtime/trace"
+	"encoding/hex"
+
+	"go.opencensus.io/exemplar"
 )
 
-func startExecutionTracerTask(ctx context.Context, name string) (context.Context, func()) {
-	if !t.IsEnabled() {
-		// Avoid additional overhead if
-		// runtime/trace is not enabled.
-		return ctx, func() {}
+func init() {
+	exemplar.RegisterAttachmentExtractor(attachSpanContext)
+}
+
+func attachSpanContext(ctx context.Context, a exemplar.Attachments) exemplar.Attachments {
+	span := FromContext(ctx)
+	if span == nil {
+		return a
 	}
-	nctx, task := t.NewTask(ctx, name)
-	return nctx, task.End
+	sc := span.SpanContext()
+	if !sc.IsSampled() {
+		return a
+	}
+	if a == nil {
+		a = make(exemplar.Attachments)
+	}
+	a[exemplar.KeyTraceID] = hex.EncodeToString(sc.TraceID[:])
+	a[exemplar.KeySpanID] = hex.EncodeToString(sc.SpanID[:])
+	return a
 }

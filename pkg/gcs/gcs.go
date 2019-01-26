@@ -2,7 +2,9 @@ package gcs
 
 import (
 	"context"
+	"fmt"
 	"net/url"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/pkg/errors"
@@ -37,10 +39,26 @@ func splitPath(gcsurl string) (bucket string, path string, err error) {
 	if err != nil {
 		return
 	}
-	if u.Scheme != "gs" && u.Scheme != "gcs" {
-		return "", "", errors.New(`incorrect url, should be "gs://bucket/path"`)
+	switch u.Scheme {
+	case "gs", "gcs":
+		bucket = u.Host
+		path = u.Path[1:]
+	case "https":
+		if u.Host != "storage.cloud.google.com" {
+			return "", "", fmt.Errorf("unexpected host %q in https URL, expected storage.cloud.google.com", u.Host)
+		}
+		u.Path = strings.TrimPrefix("/", u.Path)
+		parts := strings.SplitN(u.Path, "/", 2)
+		switch len(parts) {
+		case 0:
+			return "", "", errors.New("no bucket specified in URL")
+		case 1:
+			bucket = parts[0]
+		case 2:
+			bucket, path = parts[0], parts[1]
+		}
+	default:
+		return "", "", fmt.Errorf("unexpected scheme %s, expected gs or https", u.Scheme)
 	}
-	bucket = u.Host
-	path = u.Path[1:]
 	return
 }

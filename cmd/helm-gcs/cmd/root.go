@@ -25,8 +25,8 @@ import (
 	"os"
 
 	"cloud.google.com/go/storage"
-	"github.com/nouney/helm-gcs/pkg/gcs"
-	"github.com/nouney/helm-gcs/pkg/repo"
+	"github.com/fabxc/helm-gcs/pkg/gcs"
+	"github.com/fabxc/helm-gcs/pkg/repo"
 	"github.com/spf13/cobra"
 )
 
