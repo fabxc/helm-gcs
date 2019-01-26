@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/fabxc/helm-gcs/pkg/gcs"
 	"github.com/ghodss/yaml"
-	"github.com/nouney/helm-gcs/pkg/gcs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi"
